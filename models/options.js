@@ -23,4 +23,10 @@ const Options = sequelize.define('options', {
     tableName: 'options',
     timestamps: false
 });
+Options.get = async (key, parseJson = false, fallback = null) => {
+    const option = await Options.findOne({ where: { key } });
+    if (!option) return fallback;
+
+    return parseJson ? JSON.parse(option.value) : option.value;
+};
 module.exports = Options;
