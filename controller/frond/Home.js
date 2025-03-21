@@ -1,18 +1,8 @@
 const Category = require('../../models/categories');
 const Post = require('../../models/posts');
 const Plan = require('../../models/plans');
-const Option = require('../../models/options');
-
-const getOption = async (key, parseJson = false, fallback = null) => {
-    const option = await Option.findOne({
-        where: {
-            key
-        }
-    });
-    if (!option) return fallback;
-    return parseJson ? JSON.parse(option.value) : option.value;
-};
-
+const {getOption} = require('../../utils/options');
+const {setMetadata} = require('../../utils/seo');
 module.exports.index = async (req, res) => {
     try {
         const brands = await Category.findAll({
@@ -53,21 +43,20 @@ module.exports.index = async (req, res) => {
                 ['createdAt', 'DESC']
             ]
         });
+        const seoData = setMetadata("seo_home" ,res);
+        const home = await getOption("home-page", true, true);
+        const features_area = home?.brand?.status || "active";
+        const brand_area = home?.brand?.status || "active";
+        const account_area = home?.account_area?.status || "active";
+        let heading = home?.heading?.title || "";
+        heading = heading.replace("<strong>", "<span>").replace("</strong>", "</span>");
 
-        // Fetch homepage settings from options
-        const home = await getOption('home-page', true, true);
+        // // 🔹 جلب مسار القالب (إذا كنت تستخدم EJS أو Pug، وإلا فأعد البيانات كـ JSON)
+        // const themePath = await getOption("theme_path") || "frontend.index";
 
-        // Check different areas' status
-        const features_area = home ?.brand ?.status ?? 'active';
-        const brand_area = home ?.brand ?.status ?? 'active';
-        const account_area = home ?.account_area ?.status ?? 'active';
-
-        // Format heading
-        let heading = home ?.heading ?.title ?? '';
-        heading = heading.replace('<strong>', '<span>').replace('</strong>', '</span>');
-
-        // Send JSON response to React
+        // 🔹 إرسال البيانات كـ JSON إلى React
         return res.json({
+            seo: seoData,
             brands,
             testimonials,
             faqs,
@@ -76,7 +65,8 @@ module.exports.index = async (req, res) => {
             features_area,
             brand_area,
             account_area,
-            heading
+            heading,
+            // themePath,
         });
 
     } catch (error) {
