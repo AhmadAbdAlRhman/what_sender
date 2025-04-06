@@ -1,4 +1,4 @@
-const  getOption  = require("./options");
+const  {getOption}  = require("./options");
 
 module.exports.setMetadata = async (key, res) => {
     try {
