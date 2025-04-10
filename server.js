@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+const session = require('express-session');
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const app = express();
@@ -8,7 +9,18 @@ app.use(cors({
     credentials: true, // السماح بإرسال الكوكيز والتوكنات
 }));
 app.use(bodyParser.json());
-app.use(express.json())
+app.use(express.json());
+app.use(express.urlencoded({
+    extended: true
+}));
+app.use(session({
+    secret: 'your-secret-key', // replace with env var in prod
+    resave: false,
+    saveUninitialized: true,
+    cookie: {
+        secure: false
+    } // set secure: true if using HTTPS
+}));
 require('./models/linkings');
 const frontendRoutes = require('./routes/frond_end');
 app.use('/', frontendRoutes);

@@ -1,6 +1,18 @@
 const Post = require('../../models/posts');
 const Plan = require('../../models/plans');
 const User = require('../../models/users');
+const bcrypt = require('bcrypt');
+const { v4: uuidv4 } = require('uuid');
+async function generateAuthKey() {
+    const key = uuidv4() + uuidv4();
+    const exists = await User.findOne({
+        where: {
+            authkey: key
+        }
+    });
+    return exists ? await generateAuthKey() : key;
+}
+
 module.exports.index = async (res, req) => {
     try {
         const locale = req.get('Accept-Language') || 'en';
