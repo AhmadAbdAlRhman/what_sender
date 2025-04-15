@@ -2,7 +2,9 @@ const Post = require('../../models/posts');
 const Plan = require('../../models/plans');
 const User = require('../../models/users');
 const bcrypt = require('bcrypt');
-const { v4: uuidv4 } = require('uuid');
+const {
+    v4: uuidv4
+} = require('uuid');
 async function generateAuthKey() {
     const key = uuidv4() + uuidv4();
     const exists = await User.findOne({
@@ -13,47 +15,42 @@ async function generateAuthKey() {
     return exists ? await generateAuthKey() : key;
 }
 
-module.exports.index = async (res, req) => {
+module.exports.index = async (req, res) => {
     try {
-        const locale = req.get('Accept-Language') || 'en';
-
-        const faqs = await Post.findAll({
-            where: {
-                type: 'faq',
-                featured: 1,
-                lang: locale
-            },
-            include: ['excerpt'],
-            order: [
-                ['createdAt', 'DESC']
-            ]
-        });
-
         const plans = await Plan.findAll({
             where: {
                 status: 1
-            },
-            order: [
-                ['createdAt', 'DESC']
-            ]
+            }
         });
 
-        return res.json({
-            success: true,
-            data: {
-                faqs,
-                plans
-            },
-            message: 'Pricing data loaded successfully'
+        const formattedPlans = plans.map(plan => {
+            const features = Array.isArray(plan.data) ?
+                plan.data.filter(item => typeof item === 'string' && item.trim() !== '') :
+                [];
+
+            return {
+                id: plan.id,
+                name: plan.title,
+                price: `${plan.price} SAR`,
+                duration: plan.days === 30 ? 'شهري' : 'سنوي',
+                trial_days: plan.is_trial === 1 ? plan.trial_days : null,
+                features,
+                link: `/register/${plan.id}`,
+                highlighted: plan.is_recommended === 1
+            };
         });
-    } catch (err) {
-        console.error('Error loading pricing page:', err);
+
+        // لازم يكون هون برا الماب
+        res.json(formattedPlans);
+
+    } catch (error) {
         res.status(500).json({
-            success: false,
-            message: 'Server Error'
+            message: 'فشل جلب الخطط',
+            error: error.message
         });
     }
-}
+};
+
 
 module.exports.register = async (req, res) => {
     try {

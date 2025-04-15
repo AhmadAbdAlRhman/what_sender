@@ -90,10 +90,10 @@ module.exports.team = async (req, res) => {
         });
 
         const formattedTeams = teams.map(team => ({
-            name: team.title,
-            position: team.slug,
-            avatar: team.preview ?.value || '',
-            socials: team.excerpt ?.value ? JSON.parse(team.excerpt.value) : null
+            title: team.title,
+            slug: team.slug,
+            preview: team.preview ?.value || '',
+            excerpt: team.excerpt ?.value ? JSON.parse(team.excerpt.value) : null
         }));
 
         const faqs = await Post.findAll({

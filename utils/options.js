@@ -6,5 +6,10 @@ module.exports.getOption = async (key, parseJson = false, fallback = null) => {
         }
     });
     if (!option) return fallback;
-    return parseJson ? JSON.parse(option.value) : option.value;
+    try {
+        return parseJson ? JSON.parse(option.value) : option.value;
+    } catch (e) {
+        console.error('Error parsing option JSON:', e);
+        return fallback;
+    }
 };
